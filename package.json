@@ -1,0 +1,24 @@
+{
+  "name": "canva-lite",
+  "version": "1.0.0",
+  "description": "Canvas-based design editor with real-time collaboration",
+  "private": true,
+  "workspaces": [
+    "fe",
+    "be"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=be\" \"npm run dev --workspace=fe\"",
+    "test": "npm run test --workspace=fe && npm run test --workspace=be",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "lint": "npm run lint --workspace=fe",
+    "install:all": "npm install && npm install --workspace=fe && npm install --workspace=be"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "concurrently": "^9.1.2"
+  },
+  "author": "",
+  "license": ""
+}
