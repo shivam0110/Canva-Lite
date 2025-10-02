@@ -19,12 +19,14 @@ declare global {
   }
 }
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const client = createClient({
   authEndpoint: async (room) => {
     // Get Clerk session token
     const clerkToken = await window.Clerk?.session?.getToken();
 
-    const response = await fetch("/api/liveblocks/auth", {
+    const response = await fetch(`${API_URL}/api/liveblocks/auth`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -43,7 +45,7 @@ const client = createClient({
   resolveUsers: async ({ userIds }) => {
     // Fetch real user data from Clerk
     try {
-      const response = await fetch("/api/users/batch", {
+      const response = await fetch(`${API_URL}/api/users/batch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userIds }),
@@ -68,7 +70,7 @@ const client = createClient({
     // Fetch real users from Clerk for @mentions
     try {
       const query = text ? `?q=${encodeURIComponent(text)}` : "";
-      const response = await fetch(`/api/users/search${query}`);
+      const response = await fetch(`${API_URL}/api/users/search${query}`);
 
       if (!response.ok) {
         console.error("Failed to fetch mention suggestions");
