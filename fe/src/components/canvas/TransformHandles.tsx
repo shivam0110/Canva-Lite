@@ -62,6 +62,7 @@ export default function TransformHandles({
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDragging, isResizing, isRotating]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
