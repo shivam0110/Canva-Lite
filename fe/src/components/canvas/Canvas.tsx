@@ -8,12 +8,8 @@ import {
   setCommentsMode,
 } from "../../reducers/canvasSlice";
 import { type CanvasElement } from "../../types/canvas";
-import {
-  useCreateThread,
-  useUpdateMyPresence,
-} from "../../../liveblocks.config";
+import { useUpdateMyPresence } from "../../../liveblocks.config";
 import { Composer } from "@liveblocks/react-ui";
-import type { CommentBody } from "@liveblocks/client";
 import TransformHandles from "./TransformHandles";
 import CommentsOverlay from "./CommentsOverlay";
 import NewCommentCursor from "./NewCommentCursor";
@@ -34,7 +30,6 @@ export default function Canvas({ width, height }: CanvasProps) {
     (state: RootState) => state.canvas.commentsMode
   );
   const dispatch = useDispatch();
-  const createThread = useCreateThread();
   const updateMyPresence = useUpdateMyPresence();
   const [draftComment, setDraftComment] = useState<{
     x: number;
@@ -62,25 +57,17 @@ export default function Canvas({ width, height }: CanvasProps) {
     }
   };
 
-  const handleCommentSubmit = async ({ body }: { body: CommentBody }) => {
-    if (!draftComment) return;
-
-    // Create thread with the comment
-    await createThread({
-      body,
-      metadata: {
-        x: draftComment.x,
-        y: draftComment.y,
-        resolved: false,
-      },
-    });
-
-    // Clear draft and exit comments mode
+  const handleCommentSubmit = async () => {
+    // Composer already created the thread with metadata
+    // Just clean up state and exit comments mode
     setDraftComment(null);
     dispatch(setCommentsMode(false));
   };
 
-  const handleCommentCancel = () => {
+  const handleCommentCancel = (e?: React.MouseEvent) => {
+    // Stop event propagation to prevent triggering canvas click
+    e?.stopPropagation();
+    e?.preventDefault();
     setDraftComment(null);
   };
 
@@ -272,7 +259,7 @@ export default function Canvas({ width, height }: CanvasProps) {
             }}
           />
         )}
-        <CommentsOverlay />
+        <CommentsOverlay canvasRef={canvasRef} />
 
         {/* Draft Comment Composer */}
         {draftComment && (
@@ -284,11 +271,22 @@ export default function Canvas({ width, height }: CanvasProps) {
               top: `${draftComment.y}px`,
               transform: "translate(-50%, -100%)",
             }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="w-80 rounded-lg bg-white shadow-xl border border-gray-200 p-4">
-              <Composer onComposerSubmit={handleCommentSubmit} autoFocus />
+              <Composer
+                onComposerSubmit={handleCommentSubmit}
+                metadata={{
+                  x: draftComment.x,
+                  y: draftComment.y,
+                  resolved: false,
+                }}
+                autoFocus
+              />
               <button
                 onClick={handleCommentCancel}
+                onMouseDown={(e) => e.stopPropagation()}
                 className="mt-2 w-full text-sm text-gray-600 hover:text-gray-800"
               >
                 Cancel (Esc)

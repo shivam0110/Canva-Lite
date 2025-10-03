@@ -108,13 +108,6 @@ export default function DesignCard({ design, onEdit }: DesignCardProps) {
         >
           {isDeleting ? "Deleting..." : "Delete"}
         </Button>
-        <Button
-          onClick={handleOpen}
-          size="sm"
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          Open
-        </Button>
       </CardFooter>
     </Card>
   );

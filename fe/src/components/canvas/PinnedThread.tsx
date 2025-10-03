@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Thread } from "@liveblocks/react-ui";
 import { type ThreadData } from "@liveblocks/client";
 import { MessageSquare, Trash2, Check } from "lucide-react";
@@ -9,10 +9,12 @@ import {
 
 interface PinnedThreadProps {
   thread: ThreadData;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export default function PinnedThread({ thread }: PinnedThreadProps) {
+export default function PinnedThread({ thread, canvasRef }: PinnedThreadProps) {
   const [expanded, setExpanded] = useState(false);
+  const [screenPosition, setScreenPosition] = useState({ x: 0, y: 0 });
   const editThreadMetadata = useEditThreadMetadata();
   const deleteComment = useDeleteComment();
 
@@ -23,12 +25,36 @@ export default function PinnedThread({ thread }: PinnedThreadProps) {
     resolved?: boolean;
   };
 
+  const x = metadata?.x ?? 100;
+  const y = metadata?.y ?? 100;
+
+  // Calculate screen position from canvas-relative coordinates
+  useEffect(() => {
+    const updatePosition = () => {
+      if (canvasRef.current) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        setScreenPosition({
+          x: rect.left + x,
+          y: rect.top + y,
+        });
+      }
+    };
+
+    updatePosition();
+
+    // Update on scroll/resize
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [x, y, canvasRef]);
+
   if (metadata?.resolved) {
     return null;
   }
-
-  const x = metadata?.x ?? 100;
-  const y = metadata?.y ?? 100;
 
   const handleResolveThread = () => {
     editThreadMetadata({
@@ -49,11 +75,12 @@ export default function PinnedThread({ thread }: PinnedThreadProps) {
 
   return (
     <div
-      className="absolute z-40"
+      className="fixed"
       style={{
-        left: `${x}px`,
-        top: `${y}px`,
+        left: `${screenPosition.x}px`,
+        top: `${screenPosition.y}px`,
         transform: "translate(-50%, -100%)",
+        zIndex: 9999,
       }}
     >
       <div className="flex flex-col items-center gap-2">
